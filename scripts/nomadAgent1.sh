@@ -6,22 +6,24 @@ mv nomad /usr/bin/
 
 mkdir -p /etc/nomad.d
 
-cat << EOCCF >/etc/consul.d/server.hcl
+cat << EOCCF >/etc/consul.d/agent1.hcl
 # Increase log verbosity
 log_level = "DEBUG"
 
 # Setup data dir
-data_dir = "/opt/nomad/server"
+data_dir = "/opt/nomad/agent1"
 
 # Give the agent a unique name. Defaults to hostname
-name = "server"
+name = "agent1"
 
-# Enable the server
-server {
-  enabled = true
+# Enable the client
+client {
+    enabled = true
+}
 
-  # Self-elect, should be 3 or 5 for production
-  bootstrap_expect = 1
+# Modify our port to avoid a collision with server
+ports {
+    http = 5656
 }
 EOCCF
 
