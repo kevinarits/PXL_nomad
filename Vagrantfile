@@ -11,11 +11,11 @@ Vagrant.configure("3") do |config|
 
   config.vm.define "agent1" do |agent1|
     agent1.vm.hostname = "AGENT1"
-    agent1.vm.provision "shell", path: "scripts/nomadAgent.sh"
+    agent1.vm.provision "shell", path: "scripts/nomadAgent1.sh"
   end
 
   config.vm.define "agent2" do |agent2|
     agent2.vm.hostname = "AGENT2"
-    agent2.vm.provision "shell", path: "scripts/nomadAgent.sh"
+    agent2.vm.provision "shell", path: "scripts/nomadAgent2.sh"
   end
 end
