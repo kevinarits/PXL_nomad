@@ -4,7 +4,9 @@ sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashi
 
 sudo yum install nomad -y
 
-cat << EOCCF >/etc/nomad.d/nomad.hcl
+sudo rm -f /etc/nomad.d/nomad.hcl
+
+cat << EOCCF >/etc/nomad.d/agent2.hcl
 # Increase log verbosity
 log_level = "DEBUG"
 
