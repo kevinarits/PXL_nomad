@@ -1,12 +1,10 @@
 #!/bin/bash
 
-curl -O https://releases.hashicorp.com/nomad/0.12.5/nomad_0.12.5_linux_amd64.zip
-unzip nomad_0.12.5_linux_amd64.zip
-mv nomad /usr/bin/
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
 
-mkdir -p /etc/nomad.d
+sudo yum install nomad -y
 
-cat << EOCCF >/etc/nomad.d/agent1.hcl
+cat << EOCCF >/etc/nomad.d/nomad.hcl
 # Increase log verbosity
 log_level = "DEBUG"
 
@@ -27,5 +25,4 @@ ports {
 }
 EOCCF
 
-systemctl daemon-reload
 systemctl start nomad
