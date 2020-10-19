@@ -7,7 +7,7 @@ sudo yum install nomad -y
 sudo rm -f /etc/nomad.d/nomad.hcl
 
 cat << EOCCF >/etc/nomad.d/server.hcl
-bind_addr = "192.168.1.0"
+bind_addr = "192.168.1.1"
 
 # Increase log verbosity
 log_level = "DEBUG"

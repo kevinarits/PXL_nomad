@@ -7,7 +7,7 @@ sudo yum install nomad -y
 sudo rm -f /etc/nomad.d/nomad.hcl
 
 cat << EOCCF >/etc/nomad.d/agent2.hcl
-bind_addr = "192.168.1.0"
+bind_addr = "192.168.1.3"
 
 # Increase log verbosity
 log_level = "DEBUG"
@@ -23,10 +23,6 @@ client {
     enabled = true
 }
 
-# Modify our port to avoid a collision with server
-ports {
-    http = 5657
-}
 EOCCF
 
 systemctl start nomad
