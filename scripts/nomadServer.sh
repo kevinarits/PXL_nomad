@@ -6,7 +6,7 @@ mv nomad /usr/bin/
 
 mkdir -p /etc/nomad.d
 
-cat << EOCCF >/etc/consul.d/server.hcl
+cat << EOCCF >/etc/nomad.d/server.hcl
 # Increase log verbosity
 log_level = "DEBUG"
 
