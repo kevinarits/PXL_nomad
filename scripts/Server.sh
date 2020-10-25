@@ -45,7 +45,7 @@ bind_addr = "192.168.1.2"
 
 server = true
 
-bootstrap_expect=3
+bootstrap_expect=1
 
 EOCCF
 

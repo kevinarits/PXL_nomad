@@ -1,3 +1,4 @@
+sudo mkdir /opt/nomad/
 cat << EOCCF >/opt/nomad/job.nomad
 job "webserver" {
   datacenters = ["dc1"]
