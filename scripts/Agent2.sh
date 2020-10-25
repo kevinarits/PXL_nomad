@@ -3,8 +3,10 @@
 sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
 
 sudo yum install nomad -y
+sudo yum install consul -y
 
 sudo rm -f /etc/nomad.d/nomad.hcl
+sudo rm -f /etc/consul.d/consul.hcl
 
 cat << EOCCF >/etc/nomad.d/agent2.hcl
 bind_addr = "192.168.1.3"
@@ -25,4 +27,20 @@ client {
 
 EOCCF
 
+cat << EOCCF >/etc/consul.d/agent2.hcl
+data_dir = "/opt/consul/agent2"
+
+client_addr = "0.0.0.0"
+
+log_level = "DEBUG"
+
+retry_join = ["192.168.1.1"]
+
+ui = true
+
+bind_addr = "192.168.1.3"
+
+EOCCF
+
 systemctl start nomad
+systemctl start consul
