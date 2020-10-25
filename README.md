@@ -1,4 +1,4 @@
-# Nomad consul
+# Nomad consul (Team 3)
 
 The aim of this project is to provide a development environment based on [consul](https://www.consul.io) and [nomad](https://www.nomadproject.io) to manage container based microservices.
 
@@ -25,3 +25,5 @@ Once it is finished, you should be able to connect to the vagrant environment th
     $ vagrant ssh
     [vagrant@nomad ~]$
 ```
+
+# Documentatie
