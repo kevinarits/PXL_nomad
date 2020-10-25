@@ -8,6 +8,9 @@ sudo yum install consul -y
 sudo rm -f /etc/nomad.d/nomad.hcl
 sudo rm -f /etc/consul.d/consul.hcl
 
+sudo mkdir /opt/nomad/server
+sudo mkdir /opt/consul/server
+
 cat << EOCCF >/etc/nomad.d/server.hcl
 bind_addr = "192.168.1.2"
 

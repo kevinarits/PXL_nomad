@@ -1,4 +1,3 @@
-touch /opt/nomad/job.nomad
 cat << EOCCF >/opt/nomad/job.nomad
 job "webserver" {
   datacenters = ["dc1"]
