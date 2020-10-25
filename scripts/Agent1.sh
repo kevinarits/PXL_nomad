@@ -9,7 +9,7 @@ sudo rm -f /etc/nomad.d/nomad.hcl
 sudo rm -f /etc/consul.d/consul.hcl
 
 cat << EOCCF >/etc/nomad.d/agent1.hcl
-bind_addr = "192.168.1.2"
+bind_addr = "192.168.1.3"
 
 # Increase log verbosity
 log_level = "DEBUG"
@@ -35,11 +35,11 @@ client_addr = "0.0.0.0"
 
 log_level = "DEBUG"
 
-retry_join = ["192.168.1.1"]
+retry_join = ["192.168.1.2"]
 
 ui = true
 
-bind_addr = "192.168.1.2"
+bind_addr = "192.168.1.3"
 EOCCF
 
 systemctl start nomad

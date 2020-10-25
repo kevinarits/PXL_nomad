@@ -9,7 +9,7 @@ sudo rm -f /etc/nomad.d/nomad.hcl
 sudo rm -f /etc/consul.d/consul.hcl
 
 cat << EOCCF >/etc/nomad.d/server.hcl
-bind_addr = "192.168.1.1"
+bind_addr = "192.168.1.2"
 
 # Increase log verbosity
 log_level = "DEBUG"
@@ -38,7 +38,7 @@ log_level = "DEBUG"
 
 ui = true
 
-bind_addr = "192.168.1.1"
+bind_addr = "192.168.1.2"
 
 server = true
 
