@@ -1,4 +1,5 @@
-Vagrant.configure("3") do |config|
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "shell", inline: "hostname"
   config.vm.box = "centos/7"
 
