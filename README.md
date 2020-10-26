@@ -27,3 +27,7 @@ Once it is finished, you should be able to connect to the vagrant environment th
 ```
 
 # Documentatie
+
+In deze documentatie gaan wij onze configuratie laten zien voor onze nomad/consul cluster.
+
+## Titel 
