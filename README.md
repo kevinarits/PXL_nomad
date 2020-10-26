@@ -361,3 +361,9 @@ systemctl start docker
 
 ![LinuxPE3](https://user-images.githubusercontent.com/43812350/97183255-d96c7480-179d-11eb-87a2-ee651aa3cd63.png)
 
+## Bronvermelding
+
+Slides Lessen
+https://learn.hashicorp.com/collections/consul/getting-started
+https://learn.hashicorp.com/collections/nomad/get-started
+https://learn.hashicorp.com/tutorials/nomad/get-started-cluster?in=nomad/get-started
