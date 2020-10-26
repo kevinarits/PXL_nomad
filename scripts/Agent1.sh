@@ -6,10 +6,7 @@ sudo yum install nomad -y
 sudo yum install consul -y
 
 sudo rm -f /etc/nomad.d/nomad.hcl
-sudo rm -f /etc/consul.d/consul.hcl
 
-sudo mkdir /opt/nomad/agent1
-sudo mkdir /opt/consul/agent1
 
 cat << EOCCF >/etc/nomad.d/agent1.hcl
 bind_addr = "192.168.1.3"
@@ -18,7 +15,7 @@ bind_addr = "192.168.1.3"
 log_level = "DEBUG"
 
 # Setup data dir
-data_dir = "/opt/nomad/agent1"
+data_dir = "/opt/nomad"
 
 # Give the agent a unique name. Defaults to hostname
 name = "agent1"
@@ -26,7 +23,7 @@ name = "agent1"
 # Enable the client
 client {
     enabled = true
-	servers = ["192.168.1.2:4647"]
+	servers = ["192.168.1.2"]
 }
 
 # Disable the dangling container cleanup to avoid interaction with other clients
@@ -43,12 +40,10 @@ plugin "docker" {
 EOCCF
 
 
-cat << EOCCF >/etc/consul.d/agent1.hcl
-data_dir = "/opt/consul/agent1"
+cat << EOCCF >/etc/consul.d/consul.hcl
+data_dir = "/opt/consul"
 
 client_addr = "0.0.0.0"
-
-log_level = "DEBUG"
 
 retry_join = ["192.168.1.2"]
 
