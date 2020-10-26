@@ -353,3 +353,11 @@ systemctl start docker
 
 ## Nomad user interface
 
+![LinuxPE1](https://user-images.githubusercontent.com/43812350/97183190-c0fc5a00-179d-11eb-8252-30ed350ed59c.png)
+
+
+![LinuxPE2](https://user-images.githubusercontent.com/43812350/97183225-cfe30c80-179d-11eb-8561-de58ecbb4916.png)
+
+
+![LinuxPE3](https://user-images.githubusercontent.com/43812350/97183255-d96c7480-179d-11eb-87a2-ee651aa3cd63.png)
+
