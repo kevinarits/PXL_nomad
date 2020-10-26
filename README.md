@@ -74,11 +74,11 @@ end
 
 ## Server script
 
-Het eerste wat we hier doen is het binnenhalen van de hashicorp repository, hierin zitten nomad en consul die nodig zijn voor de installatie. Nadat beide zijn geïnstalleerd, zullen er al standaard files zijn aangemaakt waarin we de configuratie zouden moeten doen. Wij hebben deze files verwijdert en zelf nieuwe files aangemaakt. Eerst maken we de 2 mappen aan waar we de data van nomad en consul zullen opslaan (/opt/nomad/server en /opt/consul/server).
+Het eerste wat we hier doen is het binnenhalen van de hashicorp repository, hierin zitten nomad en consul die nodig zijn voor de installatie. Nadat beide zijn geïnstalleerd, zullen er al standaard files zijn aangemaakt waarin we de configuratie zouden moeten doen. Wij hebben de files verwijdert van nomad en zelf een nieuwe file aangemaakt.
 
 We starten met de nomad configuratie in /etc/nomad.d/server.hcl die we zelf aangemaakt hebben. Hierin geven we het bind address mee dat ons ip van de server zelf is. Daarnaast geven we nog een data directory en naam mee. Tenslotte geven we aan dat dit een server moet zijn.
 
-Nu gaan we de consul configuratie doen in /etc/consul.d/server.hcl die we ook zelf hebben aangemaakt. Hierin geven we ook het bind address en een data directory mee. We geven  weer aan dat dit een server moet zijn. Ook geven we mee dat er een user interface moet zijn.
+Nu gaan we de consul configuratie doen in /etc/consul.d/consul.hcl die we ook zelf hebben aangemaakt. Hierin geven we ook het bind address en een data directory mee. We geven  weer aan dat dit een server moet zijn. Ook geven we mee dat er een user interface moet zijn.
 
 Tenslotte gaan we beide services opstarten met systemctl.
 
@@ -91,10 +91,7 @@ sudo yum install nomad -y
 sudo yum install consul -y
 
 sudo rm -f /etc/nomad.d/nomad.hcl
-sudo rm -f /etc/consul.d/consul.hcl
 
-sudo mkdir /opt/nomad/server
-sudo mkdir /opt/consul/server
 
 cat << EOCCF >/etc/nomad.d/server.hcl
 bind_addr = "192.168.1.2"
@@ -103,7 +100,7 @@ bind_addr = "192.168.1.2"
 log_level = "DEBUG"
 
 # Setup data dir
-data_dir = "/opt/nomad/server"
+data_dir = "/opt/nomad"
 
 # Give the agent a unique name. Defaults to hostname
 name = "server"
@@ -117,20 +114,18 @@ server {
 }
 EOCCF
 
-cat << EOCCF >/etc/consul.d/server.hcl
-data_dir = "/opt/consul/server"
+cat << EOCCF >/etc/consul.d/consul.hcl
+data_dir = "/opt/consul"
 
 client_addr = "0.0.0.0"
 
-log_level = "DEBUG"
-
 ui = true
-
-bind_addr = "192.168.1.2"
 
 server = true
 
 bootstrap_expect=1
+
+bind_addr = "192.168.1.2"
 
 EOCCF
 
@@ -144,7 +139,7 @@ De eerste stappen die we uitvoeren zijn hetzelfde. Het verandert pas vanaf dat w
 
 We starten nu in /etc/nomad.d/agent1.hcl voor de configuratie van nomad. Hier geven we weer het bind address, de data directory en een naam mee. Daarnaast geven we aan dat het een client is, waarbij we ook het ip van de server meegeven zodat deze bij de nomad cluster aansluit.
 
-Voor de configuratie van consul werken we in /etc/consul.d/agent1.hcl. Hier geven we weer het bind address, de data directory en het ip van de server die we willen joinen. we zorgen ook weer voor een user interface.
+Voor de configuratie van consul werken we in /etc/consul.d/consul.hcl. Hier geven we weer het bind address, de data directory en het ip van de server die we willen joinen. we zorgen ook weer voor een user interface.
 
 Nu gaan we weer beide services opstarten met systemctl.
 
@@ -157,10 +152,7 @@ sudo yum install nomad -y
 sudo yum install consul -y
 
 sudo rm -f /etc/nomad.d/nomad.hcl
-sudo rm -f /etc/consul.d/consul.hcl
 
-sudo mkdir /opt/nomad/agent1
-sudo mkdir /opt/consul/agent1
 
 cat << EOCCF >/etc/nomad.d/agent1.hcl
 bind_addr = "192.168.1.3"
@@ -169,7 +161,7 @@ bind_addr = "192.168.1.3"
 log_level = "DEBUG"
 
 # Setup data dir
-data_dir = "/opt/nomad/agent1"
+data_dir = "/opt/nomad"
 
 # Give the agent a unique name. Defaults to hostname
 name = "agent1"
@@ -177,7 +169,7 @@ name = "agent1"
 # Enable the client
 client {
     enabled = true
-	servers = ["192.168.1.2:4647"]
+	servers = ["192.168.1.2"]
 }
 
 # Disable the dangling container cleanup to avoid interaction with other clients
@@ -194,12 +186,10 @@ plugin "docker" {
 EOCCF
 
 
-cat << EOCCF >/etc/consul.d/agent1.hcl
-data_dir = "/opt/consul/agent1"
+cat << EOCCF >/etc/consul.d/consul.hcl
+data_dir = "/opt/consul"
 
 client_addr = "0.0.0.0"
-
-log_level = "DEBUG"
 
 retry_join = ["192.168.1.2"]
 
@@ -225,10 +215,6 @@ sudo yum install nomad -y
 sudo yum install consul -y
 
 sudo rm -f /etc/nomad.d/nomad.hcl
-sudo rm -f /etc/consul.d/consul.hcl
-
-sudo mkdir /opt/nomad/agent2
-sudo mkdir /opt/consul/agent2
 
 cat << EOCCF >/etc/nomad.d/agent2.hcl
 bind_addr = "192.168.1.4"
@@ -237,7 +223,7 @@ bind_addr = "192.168.1.4"
 log_level = "DEBUG"
 
 # Setup data dir
-data_dir = "/opt/nomad/agent2"
+data_dir = "/opt/nomad"
 
 # Give the agent a unique name. Defaults to hostname
 name = "agent2"
@@ -245,7 +231,7 @@ name = "agent2"
 # Enable the client
 client {
     enabled = true
-	servers = ["192.168.1.2:4647"]
+	servers = ["192.168.1.2"]
 }
 
 # Disable the dangling container cleanup to avoid interaction with other clients
@@ -261,12 +247,10 @@ plugin "docker" {
 
 EOCCF
 
-cat << EOCCF >/etc/consul.d/agent2.hcl
-data_dir = "/opt/consul/agent2"
+cat << EOCCF >/etc/consul.d/consul.hcl
+data_dir = "/opt/consul"
 
 client_addr = "0.0.0.0"
-
-log_level = "DEBUG"
 
 retry_join = ["192.168.1.2"]
 
