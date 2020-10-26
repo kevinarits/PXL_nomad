@@ -29,11 +29,6 @@ client {
 	servers = ["192.168.1.2:4647"]
 }
 
-# Modify our port to avoid a collision with server1
-ports {
-    http = 5656
-}
-
 # Disable the dangling container cleanup to avoid interaction with other clients
 plugin "docker" {
   config {
