@@ -344,8 +344,10 @@ systemctl start docker
 
 Als we nu volgend commando uitvoeren zien we de job op de nomad user interface uitgevoerd worden.
 
-```nomad job run -address=http://192.168.1.2:4646/ /opt/nomad/job.nomad
 ```
+nomad job run -address=http://192.168.1.2:4646/ /opt/nomad/job.nomad
+```
+
 ![LinuxPE3](https://user-images.githubusercontent.com/43812350/97183255-d96c7480-179d-11eb-87a2-ee651aa3cd63.png)
 
 ## Consul user interface
