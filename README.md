@@ -345,6 +345,13 @@ systemctl start docker
 
 ![LinuxPE3](https://user-images.githubusercontent.com/43812350/97183255-d96c7480-179d-11eb-87a2-ee651aa3cd63.png)
 
+## Consul user interface
+
+![LinuxPE4](https://user-images.githubusercontent.com/43812348/97206579-34f82b80-17b9-11eb-87c9-b81e7458275b.png)
+
+
+![LinuxPE5](https://user-images.githubusercontent.com/43812348/97206521-20b42e80-17b9-11eb-8897-c225f7f04831.png)
+
 ## Bronvermelding
 
 Slides Lessen
