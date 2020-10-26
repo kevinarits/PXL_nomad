@@ -329,6 +329,10 @@ nomad job run -address=http://192.168.1.2:4646/ /opt/nomad/job.nomad
 
 ![LinuxPE5](https://user-images.githubusercontent.com/43812348/97206521-20b42e80-17b9-11eb-8897-c225f7f04831.png)
 
+## Taakverdeling
+
+Tijdens het maken van de opdracht hebben wij voor het grootste gedeelte samengewerkt met behulp van screensharen op Teams.
+
 ## Bronvermelding
 
 Slides Lessen
