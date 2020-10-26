@@ -280,7 +280,7 @@ systemctl start nomad
 systemctl start consul
 ```
 
-## job script
+## Job script
 
 Hier maken we een eenvoudige webserver job aan. We maken eerst de map /opt/nomad/ aan, en hierin steken we onze job onder de naam job.nomad.
 
@@ -330,7 +330,7 @@ job "webserver" {
 EOCCF
 ```
 
-## docker script
+## Docker script
 
 Met dit script gaan we docker installeren. We halen eerst de juiste repo af zodat we docker kunnen installeren.
 Daarna installeren we nog eerst de juiste dependecies. Tenslotte starten we docker op.
@@ -350,3 +350,6 @@ yum install -y docker-ce docker-ce-cli containerd.io
 systemctl enable docker
 systemctl start docker
 ```
+
+## Nomad user interface
+
