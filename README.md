@@ -364,6 +364,9 @@ systemctl start docker
 ## Bronvermelding
 
 Slides Lessen
+
 https://learn.hashicorp.com/collections/consul/getting-started
+
 https://learn.hashicorp.com/collections/nomad/get-started
+
 https://learn.hashicorp.com/tutorials/nomad/get-started-cluster?in=nomad/get-started
