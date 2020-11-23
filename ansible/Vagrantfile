@@ -3,7 +3,7 @@
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vbguest.auto_update = false
-  config.vm.provision "shell", path: "installAnsible"
+  config.vm.provision "shell", path: "installAnsible.sh"
   config.vm.box = "centos/7"
 
   config.vm.define "server" do |server|
@@ -67,7 +67,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provider :lxc do |lxc, override|
     override.vm.box = "visibilityspots/centos-7.x-minimal"
   end
-  
-  config.vm.provision "shell", path: "scripts/docker.sh"
 
 end
