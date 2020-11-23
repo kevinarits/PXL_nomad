@@ -1,0 +1,5 @@
+- name: install nomad
+  yum:
+    name: nomad
+    state: installed
+  notify: restart nomad

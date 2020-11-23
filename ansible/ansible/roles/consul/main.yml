@@ -1,0 +1,5 @@
+- name: install consul
+  yum:
+    name: consul
+    state: installed
+  notify: restart consul
