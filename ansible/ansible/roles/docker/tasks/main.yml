@@ -1,5 +1,21 @@
-- name: install docker
+---
+- name: add repo
+  yum_repository:
+    name: hashicorp repo
+    baseurl: https://download.docker.com/linux/centos/docker-ce.repo
+
+- name: install docker-ce
   yum:
-    name: docker
+    name: docker-ce
+    state: installed
+  
+- name: install docker-ce-cli
+  yum:
+    name: docker-ce-cli
+    state: installed
+
+- name: install containerd.io
+  yum:
+    name: containerd.io
     state: installed
   notify: restart docker

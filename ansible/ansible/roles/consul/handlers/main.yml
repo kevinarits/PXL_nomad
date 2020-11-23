@@ -1,4 +1,9 @@
 ---
+- name: add repo
+  yum_repository:
+    name: hashicorp repo
+    baseurl: https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+
 - name: restart crond
   service:
     name: crond
