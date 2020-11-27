@@ -1,5 +1,5 @@
 ---
-- name: playbook for server vm
+- name: playbook for agent vm
   hosts: servers
   become: yes
 

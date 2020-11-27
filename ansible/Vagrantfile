@@ -30,10 +30,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	
 	agent1.vm.provision "ansible_local" do |ansible|
       ansible.config_file = "ansible/ansible.cfg"
-      ansible.playbook = "ansible/plays/agent1.yml"
+      ansible.playbook = "ansible/plays/agent.yml"
       ansible.groups = {
-        "agent1" => ["agent1"],
-#        "agent1:vars" => {"crond__content" => "agent1_value"}
+        "agents" => ["agent1"],
+#        "agents:vars" => {"crond__content" => "agents_value"}
       }
       ansible.host_vars = {
 #        "agent1" => {"crond__content" => "agent1_value"}
@@ -48,10 +48,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	
 	agent2.vm.provision "ansible_local" do |ansible|
       ansible.config_file = "ansible/ansible.cfg"
-      ansible.playbook = "ansible/plays/agent2.yml"
+      ansible.playbook = "ansible/plays/agent.yml"
       ansible.groups = {
-        "agent2" => ["agent2"],
-#        "agent2:vars" => {"crond__content" => "agent2_value"}
+        "agents" => ["agent2"],
+#        "agents:vars" => {"crond__content" => "agents_value"}
       }
       ansible.host_vars = {
 #        "agent2" => {"crond__content" => "agent2_value"}
