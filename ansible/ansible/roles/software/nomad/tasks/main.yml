@@ -1,3 +1,10 @@
+---
+- name: add repo
+  yum_repository:
+    name: hashicorp repo
+    description: add hashicorp repo
+    baseurl: https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+    
 - name: install nomad
   yum:
     name: nomad

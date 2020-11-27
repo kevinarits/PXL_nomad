@@ -2,6 +2,7 @@
 - name: add repo
   yum_repository:
     name: hashicorp repo
+    description: add hashicorp repo
     baseurl: https://download.docker.com/linux/centos/docker-ce.repo
 
 - name: install docker-ce
