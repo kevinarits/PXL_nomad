@@ -4,6 +4,7 @@
     name: hashicorp repo
     description: add hashicorp repo
     baseurl: https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+    gpgkey: https://rpm.releases.hashicorp.com/gpg
     
 - name: install nomad
   yum:
