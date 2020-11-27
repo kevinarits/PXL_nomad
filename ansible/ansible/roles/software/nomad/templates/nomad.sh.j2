@@ -8,39 +8,36 @@ data_dir = "/opt/nomad"
 
 
 {% if server.vm.hostname == 'SERVER' %}
-
-	name = "server"
-	server {
-		enabled = true
-		bootstrap_expect = 1
-	}
+name = "server"
+server {
+	enabled = true
+	bootstrap_expect = 1
+}
 	
 {% else %}
-
-	client {
-		enabled = true
-		servers = ["192.168.1.2"]
-	}
-	plugin "docker" {
-		config {
-			gc {
-				dangling_containers {
-					enabled = false
-				}
+client {
+	enabled = true
+	servers = ["192.168.1.2"]
+}
+plugin "docker" {
+	config {
+		gc {
+			dangling_containers {
+				enabled = false
 			}
 		}
 	}
+}
 	
-	{% if server.vm.hostname == 'AGENT1' %}
 
-		name= "agent1"
+{% if server.vm.hostname == 'AGENT1' %}
+name= "agent1"
+{% endif %}
 	
-	{% endif %}
-	
-	{% if server.vm.hostname == 'AGENT2' %}
 
-		name= "agent2"
-		
-	{% endif %}
-	
+{% if server.vm.hostname == 'AGENT2' %}
+name= "agent2"
+{% endif %}
+
+
 {% endif %}
