@@ -7,3 +7,12 @@
     name: nomad
     state: installed
   notify: restart nomad
+  
+- name: add nomad script
+  template:
+    src: nomad.sh.j2
+    dest: /etc/nomad.d/nomad.hcl
+    owner: "root"
+    group: "root"
+    mode: u=rwx,g=r,o=r
+  notify: restart nomad  
