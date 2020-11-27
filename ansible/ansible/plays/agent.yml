@@ -1,6 +1,6 @@
 ---
 - name: playbook for agent vm
-  hosts: servers
+  hosts: agents
   become: yes
 
   roles:
