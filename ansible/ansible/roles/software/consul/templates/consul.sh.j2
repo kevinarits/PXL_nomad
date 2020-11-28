@@ -5,7 +5,7 @@
 data_dir = "/opt/consul"
 client_addr = "0.0.0.0"
 ui = true
-bind_addr = {{ ansible_eth1.ipv4.address }}
+bind_addr = "{{ ansible_eth1.ipv4.address }}"
 
 
 {% if ansible_hostname == 'SERVER' %}

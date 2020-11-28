@@ -2,7 +2,7 @@
 # {{ ansible_managed }}
 
 
-bind_addr = {{ ansible_eth1.ipv4.address }}
+bind_addr = "{{ ansible_eth1.ipv4.address }}"
 log_level = "DEBUG"
 data_dir = "/opt/nomad"
 
