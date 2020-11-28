@@ -16,14 +16,9 @@
   yum:
     name: containerd.io
     state: installed
-  notify: restart docker
   
 - name: Enable service docker
   service:
     name: docker
-    enabled: yes
-  
-- name: Start service docker, if not started
-  service:
-    name: docker
-    state: started  
+    enabled: yes  
+  notify: restart docker
