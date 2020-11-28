@@ -15,4 +15,14 @@
     owner: "root"
     group: "root"
     mode: u=rwx,g=r,o=r
-  notify: restart nomad  
+  notify: restart nomad
+  
+- name: Enable service nomad
+  service:
+    name: nomad
+    enabled: yes
+  
+- name: Start service nomad, if not started
+  service:
+    name: nomad
+    state: started  

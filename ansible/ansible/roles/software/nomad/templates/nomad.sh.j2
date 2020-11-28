@@ -7,7 +7,7 @@ log_level = "DEBUG"
 data_dir = "/opt/nomad"
 
 
-{% if server.vm.hostname == 'SERVER' %}
+{% if ansible_hostname == 'SERVER' %}
 name = "server"
 server {
 	enabled = true
@@ -30,12 +30,12 @@ plugin "docker" {
 }
 	
 
-{% if server.vm.hostname == 'AGENT1' %}
+{% if ansible_hostname == 'AGENT1' %}
 name= "agent1"
 {% endif %}
 	
 
-{% if server.vm.hostname == 'AGENT2' %}
+{% if ansible_hostname == 'AGENT2' %}
 name= "agent2"
 {% endif %}
 

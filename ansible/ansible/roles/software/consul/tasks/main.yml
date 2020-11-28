@@ -15,4 +15,14 @@
     owner: "root"
     group: "root"
     mode: u=rwx,g=r,o=r
-  notify: restart consul  
+  notify: restart consul
+  
+- name: Enable service consul
+  service:
+    name: consul
+    enabled: yes
+  
+- name: Start service consul, if not started
+  service:
+    name: consul
+    state: started  
