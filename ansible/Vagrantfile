@@ -15,10 +15,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.playbook = "ansible/plays/server.yml"
       ansible.groups = {
         "servers" => ["server"],
-#        "servers:vars" => {"crond__content" => "servers_value"}
+#        "servers:vars" => {"software__content" => "servers_value"}
       }
       ansible.host_vars = {
-#        "server" => {"crond__content" => "server_value"}
+#        "server" => {"software__content" => "server_value"}
       }
 #      ansible.verbose = '-vvv'
     end
@@ -33,10 +33,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.playbook = "ansible/plays/agent.yml"
       ansible.groups = {
         "agents" => ["agent1"],
-#        "agents:vars" => {"crond__content" => "agents_value"}
+#        "agents:vars" => {"software__content" => "agents_value"}
       }
       ansible.host_vars = {
-#        "agent1" => {"crond__content" => "agent1_value"}
+#        "agent1" => {"software__content" => "agent1_value"}
       }
 #      ansible.verbose = '-vvv'
     end
@@ -51,10 +51,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.playbook = "ansible/plays/agent.yml"
       ansible.groups = {
         "agents" => ["agent2"],
-#        "agents:vars" => {"crond__content" => "agents_value"}
+#        "agents:vars" => {"software__content" => "agents_value"}
       }
       ansible.host_vars = {
-#        "agent2" => {"crond__content" => "agent2_value"}
+#        "agent2" => {"software__content" => "agent2_value"}
       }
 #      ansible.verbose = '-vvv'
     end
