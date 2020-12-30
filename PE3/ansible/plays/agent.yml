@@ -1,0 +1,9 @@
+---
+- name: playbook for agent vm
+  hosts: agents
+  become: yes
+
+  roles:
+    - role: software/consul
+    - role: software/docker
+    - role: software/nomad

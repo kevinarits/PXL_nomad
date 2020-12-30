@@ -1,0 +1,24 @@
+---
+- name: add repo
+  command: yum-config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+
+- name: install docker-ce
+  yum:
+    name: docker-ce
+    state: installed
+  
+- name: install docker-ce-cli
+  yum:
+    name: docker-ce-cli
+    state: installed
+
+- name: install containerd.io
+  yum:
+    name: containerd.io
+    state: installed
+  
+- name: Enable service docker
+  service:
+    name: docker
+    enabled: yes  
+  notify: restart docker

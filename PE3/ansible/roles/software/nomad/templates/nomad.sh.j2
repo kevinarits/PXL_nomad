@@ -1,0 +1,43 @@
+#!/bin/bash
+# {{ ansible_managed }}
+
+
+bind_addr = "{{ ansible_eth1.ipv4.address }}"
+log_level = "DEBUG"
+data_dir = "/opt/nomad"
+
+
+{% if ansible_hostname == 'SERVER' %}
+name = "server"
+server {
+	enabled = true
+	bootstrap_expect = 1
+}
+	
+{% else %}
+client {
+	enabled = true
+	servers = ["192.168.1.2"]
+}
+plugin "docker" {
+	config {
+		gc {
+			dangling_containers {
+				enabled = false
+			}
+		}
+	}
+}
+	
+
+{% if ansible_hostname == 'AGENT1' %}
+name= "agent1"
+{% endif %}
+	
+
+{% if ansible_hostname == 'AGENT2' %}
+name= "agent2"
+{% endif %}
+
+
+{% endif %}
