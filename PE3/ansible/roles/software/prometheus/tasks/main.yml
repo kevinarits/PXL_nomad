@@ -2,6 +2,7 @@
 - name: dir for prometheus.yml
   file:
     path: /opt/prometheus
+    state: directory
     mode: u=rwx,g=r,o=r
 
 - name: template prometheus.yml

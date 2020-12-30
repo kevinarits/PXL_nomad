@@ -2,14 +2,16 @@
 - name: install node_exporter
   get_url:
     url: https://github.com/prometheus/node_exporter/releases/download/v1.0.1/node_exporter-1.0.1.linux-amd64.tar.gz
+    dest: /home/vagrant
     mode: u=rwx,g=r,o=r
     
 - name: unpack node_exporter
   unarchive:
-    src: node_exporter-1.0.1.linux-amd64.tar.gz
+    src: /home/vagrant/node_exporter-1.0.1.linux-amd64.tar.gz
+    dest: /home/vagrant
 
 - name: change to local/bin/
-  command: mv node_exporter-1.0.1.linux-amd64/node_exporter /usr/local/bin/
+  command: mv /home/vagrant/node_exporter-1.0.1.linux-amd64/node_exporter /usr/local/bin/
   
 - name: add node_exporter script
   template:
