@@ -1,0 +1,6 @@
+---
+- name: nomad job alertmanager 
+  template: 
+    src: alertmanager.nomad.sh.j2
+    dest: /opt/nomad/alertmanager.nomad
+  notify: start alertmanager job

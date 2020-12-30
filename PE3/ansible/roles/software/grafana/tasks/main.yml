@@ -1,0 +1,6 @@
+---
+- name: nomad job grafana 
+  template: 
+    src: grafana.nomad.sh.j2
+    dest: /opt/nomad/grafana.nomad
+  notify: start grafana job
