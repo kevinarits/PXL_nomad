@@ -17,4 +17,9 @@
   template:
     src: node_exporter.sh.j2
     dest: /etc/systemd/system/node_exporter.service
+    
+- name: Enable service node_exporter
+  service:
+    name: node_exporter
+    enabled: yes
   notify: restart node_exporter
