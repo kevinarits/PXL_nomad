@@ -5,7 +5,7 @@
     state: directory
     mode: u=rwx,g=r,o=r
 
-- name: template prometheus.yml
+- name: creation prometheus.yml
   template: 
     src: prometheus.yml.sh.j2
     dest: /opt/prometheus/prometheus.yml

@@ -5,7 +5,7 @@
     dest: /home/vagrant
     mode: u=rwx,g=r,o=r
     
-- name: unpack node_exporter
+- name: unzip node_exporter
   unarchive:
     src: /home/vagrant/node_exporter-1.0.1.linux-amd64.tar.gz
     dest: /home/vagrant
