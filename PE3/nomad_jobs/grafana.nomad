@@ -1,35 +1,35 @@
-job "prometheus" {
+job "grafana" {
   datacenters = ["dc1"]
   type = "service"
   
-  group "prometheus" {
+  group "grafana" {
   
-    task "prometheus" {
+    task "grafana" {
       driver = "docker"
 
       config {
-        image = "prom/prometheus"
+        image = "grafana/grafana"
 		force_pull = true
 		port_map = {
-		  prometheus_web = 9090
+		  grafana_web = 3000
 		} 
 		logging {
 		  type = "journald"
 		  config {
-		    tag = "PROMETHEUS"
+		    tag = "GRAFANA"
 		 }
 		}	
       }
 	  
 	  service {
-	    name = "prometheus"
-	    port = "prometheus_web"
+	    name = "grafana"
+	    port = "grafana_web"
 	  } 
 
       resources {
         network {
-          port "prometheus_web" {
-            static = "9090"
+          port "grafana_web" {
+            static = "3000"
           }
         }
       }

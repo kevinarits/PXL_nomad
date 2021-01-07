@@ -7,7 +7,6 @@
     - role: software/consul
     - role: software/docker
     - role: software/nomad
-    - role: software/prometheus
     - role: software/grafana
     - role: software/alertmanager
     - role: software/node_exporter
