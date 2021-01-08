@@ -1,328 +1,437 @@
-# Documentatie Ansible (Team 3)
+# Documentatie PE 3 - Prometheus, Grafana, Alertmanager... (Team 3)
 
-In deze documentatie gaan wij onze configuratie laten zien van ansible in onze cluster.
+In deze documentatie gaan wij onze configuratie laten zien van verschillende metrics en exporters in onze cluster.
 
-## Vagrantfile 
+## Prometheus
 
-In de vagrantfile wordt er meegegeven dat er 3 CentOS virtuele machines moeten aangemaakt worden in onze omgeving, namelijk 1 server en 2 agents. We starten even met een shell script om Ansible te gaan installeren en te kunnen gebruiken voor de installaties op de Virtuele machines. Hierna maken we de server VM aan en geven we deze een IP mee (192.168.1.2). In deze server gaan we een Ansible provision schrijven. Hier geven we de config file, de playbook en de host/group vars mee. De configuratie van deze specifieke files zullen worden aangehaald verder in deze README. Voor de 2 Agents is in principe hetzelfde van toepassing, alleen dat we natuurlijk een ander playbook en andere host/group vars meegeven, namelijk die van de agents.
+Om prometheus op te zetten in onze cluster hebben we ervoor gekozen om 1 file te maken waarin we alle configuratie meegeven. In principe is deze file onze nomad job alleen maar binnen deze file worden er ook 2 andere files aangemaakt en weggeschreven naar .yml bestanden. Eerst over de job, onze job 'prometheus' zal gewoon via docker een image pullen (prom/prometheus:latest) en deze openen op de 9090 poort. Natuurlijk zonder een prometheus.yml file kunnen we niet de scrape targets meegeven aan de prometheus. Dit doen we door een stukje code weg te schrijven naar local/prometheus.yml file met behulp van EOH. We geven hier mee dat de prometheus verschillende targets moet scrapen van de consul pagina of gewoon een IP. Alertmanager, nomad, nomad-client en cadvisor worden ingesteld zodanig dat er wordt gezocht op de consul naar de specifieke service. Deze service bezit alle metrics die nodig zijn voor onze prometheus. Ook node-exporter staat hierbij, alleen worden de metrics met behulp van een static target opgehaald. Buiten de prometheus.yml hebben we ook de cadvisor_alert.yml, deze hebben we ingesteld zodat wanneer onze cadvisor webpagina down gaat er een melding wordt verstuurd op alertmanager.
 
 ```
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
-VAGRANTFILE_API_VERSION = "2"
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vbguest.auto_update = false
-  config.vm.provision "shell", path: "installAnsible.sh"
-  config.vm.box = "centos/7"
+job "prometheus" {
+  datacenters = ["dc1"]
+  type        = "service"
 
-  config.vm.define "server" do |server|
-    server.vm.hostname = "SERVER"
-    server.vm.network "private_network", ip: "192.168.1.2"
-	
-	server.vm.provision "ansible_local" do |ansible|
-      ansible.config_file = "ansible/ansible.cfg"
-      ansible.playbook = "ansible/plays/server.yml"
-      ansible.groups = {
-        "servers" => ["server"],
-#        "servers:vars" => {"software__content" => "servers_value"}
+  group "monitoring" {
+    count = 1
+
+    restart {
+      attempts = 2
+      interval = "30m"
+      delay    = "15s"
+      mode     = "fail"
+    }
+
+    ephemeral_disk {
+      size = 300
+    }
+
+    task "prometheus" {
+      template {
+        change_mode = "noop"
+        destination = "local/cadvisor_alert.yml"
+        data = <<EOH
+---
+groups:
+- name: prometheus_alerts
+  rules:
+  - alert: cadvisor down
+    expr: absent(up{job="cadvisor"})
+    for: 10s
+    labels:
+      severity: critical
+    annotations:
+      description: "Our cadvisor is down."
+EOH
       }
-      ansible.host_vars = {
-#        "server" => {"software__content" => "server_value"}
+
+      template {
+        change_mode = "noop"
+        destination = "local/prometheus.yml"
+
+        data = <<EOH
+---
+global:
+  scrape_interval:     5s
+  evaluation_interval: 5s
+
+alerting:
+  alertmanagers:
+  - consul_sd_configs:
+    - server: '{{ env "NOMAD_IP_prometheus_ui" }}:8500'
+      services: ['alertmanager']
+
+rule_files:
+  - "cadvisor_alert.yml"
+
+scrape_configs:
+
+  - job_name: 'alertmanager'
+
+    consul_sd_configs:
+    - server: '{{ env "NOMAD_IP_prometheus_ui" }}:8500'
+      services: ['alertmanager']
+
+  - job_name: 'nomad_metrics'
+
+    consul_sd_configs:
+    - server: '{{ env "NOMAD_IP_prometheus_ui" }}:8500'
+      services: ['nomad-client', 'nomad']
+
+    relabel_configs:
+    - source_labels: ['__meta_consul_tags']
+      regex: '(.*)http(.*)'
+      action: keep
+
+    scrape_interval: 5s
+    metrics_path: /v1/metrics
+    params:
+      format: ['prometheus']
+
+  - job_name: 'node_exporter'
+    static_configs:
+    - targets: ['192.168.1.3:9100']
+  
+  - job_name: 'cadvisor'
+
+    consul_sd_configs:
+    - server: '{{ env "NOMAD_IP_prometheus_ui" }}:8500'
+      services: ['cadvisor']
+
+EOH
       }
-#      ansible.verbose = '-vvv'
-    end
-  end
 
-  config.vm.define "agent1" do |agent1|
-    agent1.vm.hostname = "AGENT1"
-    agent1.vm.network "private_network", ip: "192.168.1.3"
-	
-	agent1.vm.provision "ansible_local" do |ansible|
-      ansible.config_file = "ansible/ansible.cfg"
-      ansible.playbook = "ansible/plays/agent.yml"
-      ansible.groups = {
-        "agents" => ["agent1"],
-#        "agents:vars" => {"software__content" => "agents_value"}
+      driver = "docker"
+
+      config {
+        image = "prom/prometheus:latest"
+
+        volumes = [
+          "local/prometheus.yml:/etc/prometheus/prometheus.yml",
+        ]
+
+        port_map {
+          prometheus_ui = 9090
+        }
       }
-      ansible.host_vars = {
-#        "agent1" => {"software__content" => "agent1_value"}
+
+      resources {
+        network {
+             port "prometheus_ui" {
+             to = 9090
+             static = 9090
+             }
+
+        }
       }
-#      ansible.verbose = '-vvv'
-    end
-  end
+      service {
+        name = "prometheus"
+        tags = ["urlprefix-/"]
+        port = "prometheus_ui"
 
-  config.vm.define "agent2" do |agent2|
-    agent2.vm.hostname = "AGENT2"
-    agent2.vm.network "private_network", ip: "192.168.1.4"
-	
-	agent2.vm.provision "ansible_local" do |ansible|
-      ansible.config_file = "ansible/ansible.cfg"
-      ansible.playbook = "ansible/plays/agent.yml"
-      ansible.groups = {
-        "agents" => ["agent2"],
-#        "agents:vars" => {"software__content" => "agents_value"}
+        check {
+          name     = "prometheus_ui port alive"
+          type     = "http"
+          path     = "/-/healthy"
+          interval = "10s"
+          timeout  = "2s"
+        }
       }
-      ansible.host_vars = {
-#        "agent2" => {"software__content" => "agent2_value"}
-      }
-#      ansible.verbose = '-vvv'
-    end
-  end
-  
-  config.vm.provider :virtualbox do |virtualbox, override|
-    virtualbox.customize ["modifyvm", :id, "--memory", 2048]
-  end
-  
-  config.vm.provider :lxc do |lxc, override|
-    override.vm.box = "visibilityspots/centos-7.x-minimal"
-  end
-
-end
-```
-
-## Ansible script
-
-Omdat Ansible niet verkrijgbaar is op Windows hebben we gekozen om lokaal in de VM Ansible te gaan installeren zodat we Ansible tasks en dergelijke kunnen uitvoeren.
-
-```
-#!/bin/bash
-
-sudo yum install epel-release -y
-sudo yum install ansible -y
-```
-
-## Server playbook
-
-In een Ansible playbook geef je simpelweg Ansible configuratie en deployment mee, in ons geval deployen wij 3 software roles die geinstalleerd moeten worden op de virtuele machine van de server VM. Ook geven we mee met 'become' dat de Ansible playbook hogere rechten verkrijgt voor de installaties.
-
-```
----
-- name: playbook for server vm
-  hosts: servers
-  become: yes
-
-  roles:
-    - role: software/consul
-    - role: software/docker
-    - role: software/nomad
-```
-
-## Agent playbook
-
-De agent playbook is hetzelfde alleen dat bij hosts 'servers' aangepast moet worden naar 'agents' zodat we kunnen aangeven in de vagrantfile dat het om een agent gaat en niet een server VM.
-
-```
----
-- name: playbook for agent vm
-  hosts: agents
-  become: yes
-
-  roles:
-    - role: software/consul
-    - role: software/docker
-    - role: software/nomad
-```
-
-## Software roles (consul)
-### Consul handlers
-
-In de handler van consul geven we mee dat de service moet herstarten. Deze handler wordt later gebruikt in de task file na het enablen van de service.
-
-```
----
-- name: restart consul
-  service:
-    name: consul
-    state: restarted
-```
-
-### Consul tasks
-
-In de task van consul starten we met het toevoegen van de hashicorp repository, waarna we consul installeren. Vervolgens gaan we het script van consul toevoegen aan de hand van de template die later aan bod komt. We geven hierbij de juiste owner en groep mee met de juiste rechten. Tenslotte enablen we de service en geven we mee dat de consul handler uitgevoerd moet worden.
-
-```
----
-- name: add repo
-  command: yum-config-manager --add-repo=https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
-
-- name: install consul
-  yum:
-    name: consul
-    state: installed
-  
-- name: add consul script
-  template:
-    src: consul.sh.j2
-    dest: /etc/consul.d/consul.hcl
-    owner: "consul"
-    group: "consul"
-    mode: u=rwx,g=r,o=r
-  
-- name: Enable service consul
-  service:
-    name: consul
-    enabled: yes
-  notify: restart consul
-```
-
-### Consul templates
-
-In de template van consul geven we de configuratie mee die we in de consul.hcl file gaan stoppen. We starten eerst met het meegeven van de variabelen die voor alle vm's hetzelfde zijn zoals de data directory, het client adress, ui. We zorgen ook dat de vm het juiste bind adress meekrijgt. Daarna gaan we via een if condition kijken of de vm een server moet zijn of een client. Als het een server moet zijn, geven we mee dat de server variabele true moet zijn en dat we bootstrap_expect instellen op 1. Als het een client is geven we mee welke server deze moet proberen te joinen.
-
-```
-#!/bin/bash
-# {{ ansible_managed }}
-
-
-data_dir = "/opt/consul"
-client_addr = "0.0.0.0"
-ui = true
-bind_addr = "{{ ansible_eth1.ipv4.address }}"
-
-
-{% if ansible_hostname == 'SERVER' %}
-server = true
-bootstrap_expect = 1
-{% else %}
-retry_join = ["192.168.1.2"]
-{% endif %}
-```
-
-## Software roles (docker)
-### Docker handlers
-
-In de handler van docker geven we mee dat de service moet herstarten. Deze handler wordt later gebruikt in de task file na het enablen van de service.
-
-```
----
-- name: restart docker
-  service:
-    name: docker
-    state: restarted
-```
-
-### Docker tasks
-
-In de task van docker starten we met het toevoegen van de hashicorp repository, waarna we alle juiste docker dependencies installeren. Daarna enablen we de service en geven we mee dat de docker handler uitgevoerd moet worden.
-
-```
----
-- name: add repo
-  command: yum-config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
-
-- name: install docker-ce
-  yum:
-    name: docker-ce
-    state: installed
-  
-- name: install docker-ce-cli
-  yum:
-    name: docker-ce-cli
-    state: installed
-
-- name: install containerd.io
-  yum:
-    name: containerd.io
-    state: installed
-  
-- name: Enable service docker
-  service:
-    name: docker
-    enabled: yes  
-  notify: restart docker
-```
-
-## Software roles (nomad)
-### Nomad handlers
-
-In de handler van nomad geven we mee dat de service moet herstarten. Deze handler wordt later gebruikt in de task file na het enablen van de service.
-
-```
----
-- name: restart nomad
-  service:
-    name: nomad
-    state: restarted
-```
-
-### Nomad tasks
-
-In de task van nomad starten we met het toevoegen van de hashicorp repository, waarna we nomad installeren. Vervolgens gaan we het script van nomad toevoegen aan de hand van de template die later aan bod komt. We geven hierbij de juiste owner en groep mee met de juiste rechten. Tenslotte enablen we de service en geven we mee dat de nomad handler uitgevoerd moet worden.
-
-```
----
-- name: add repo
-  command: yum-config-manager --add-repo=https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
-    
-- name: install nomad
-  yum:
-    name: nomad
-    state: installed
-  
-- name: add nomad script
-  template:
-    src: nomad.sh.j2
-    dest: /etc/nomad.d/nomad.hcl
-    owner: "root"
-    group: "root"
-    mode: u=rwx,g=r,o=r
-  
-- name: Enable service nomad
-  service:
-    name: nomad
-    enabled: yes
-  notify: restart nomad
-```
-
-### Nomad templates
-
-In de template van consul geven we de configuratie mee die we in de nomad.hcl file gaan stoppen. We starten eerst met het meegeven van de variabelen die voor alle vm's hetzelfde zijn zoals de data directory en het log level. We zorgen ook dat de vm het juiste bind adress meekrijgt. Daarna gaan we via een if condition kijken of de vm een server moet zijn of een client. Als het een server moet zijn, geven we de juiste naam mee en geven we mee dat de server variabele true moet zijn en dat we bootstrap_expect instellen op 1. Als het een client is geven we mee welke server deze moet proberen te joinen, dat in client de enabled variabele true moet zijn, dat we de docker plugin goed meegeven en dat de naam van de juiste client wordt meegegeven.
-
-```
-#!/bin/bash
-# {{ ansible_managed }}
-
-
-bind_addr = "{{ ansible_eth1.ipv4.address }}"
-log_level = "DEBUG"
-data_dir = "/opt/nomad"
-
-
-{% if ansible_hostname == 'SERVER' %}
-name = "server"
-server {
-	enabled = true
-	bootstrap_expect = 1
+    }
+  }
 }
-	
-{% else %}
-client {
-	enabled = true
-	servers = ["192.168.1.2"]
-}
-plugin "docker" {
-	config {
-		gc {
-			dangling_containers {
-				enabled = false
-			}
-		}
-	}
-}
-	
-
-{% if ansible_hostname == 'AGENT1' %}
-name= "agent1"
-{% endif %}
-	
-
-{% if ansible_hostname == 'AGENT2' %}
-name= "agent2"
-{% endif %}
-
-
-{% endif %}
 ```
+
+## Software roles (Grafana)
+### Grafana handlers
+
+In de handler van grafana geven we mee dat we deze als een nomad job gaan runnen. We roepen de grafana.nomad file op die aangemaakt wordt in het task gedeelte van grafana binnen Ansible. Deze handler wordt later gebruikt in tasks na het maken van de nomad job.
+
+```
+---
+- name: start grafana job
+  shell: nomad job run -address=http://192.168.1.2:4646/ /opt/nomad/grafana.nomad || exit 0
+```
+
+### Grafana tasks
+
+In de tasks van grafana gaan we simpelweg een nomad job maken en deze stoppen in de /opt/nomad map. We halen de code van de job op in de template file die we hebben aangemaakt voor Grafana. Op het einde geven we nog mee met behulp van notify dat we de handler moeten uitvoeren om de job te starten.
+
+```
+---
+- name: nomad job grafana 
+  template: 
+    src: grafana.nomad.sh.j2
+    dest: /opt/nomad/grafana.nomad
+  notify: start grafana job
+```
+
+### Grafana templates
+
+In de template van Grafana geven we de configuratie mee die we in de nomad job stoppen bij de tasks van Grafana. We maken hier een grafana job met behulp van docker die de grafana/grafana image pulled. Deze wordt geopend op de 3000 poort. 
+
+```
+job "grafana" {
+  datacenters = ["dc1"]
+  type = "service"
+  
+  group "grafana" {
+  
+    task "grafana" {
+      driver = "docker"
+
+      config {
+        image = "grafana/grafana"
+		force_pull = true
+		port_map = {
+		  grafana_web = 3000
+		} 
+		logging {
+		  type = "journald"
+		  config {
+		    tag = "GRAFANA"
+		 }
+		}	
+      }
+	  
+	  service {
+	    name = "grafana"
+	    port = "grafana_web"
+	  } 
+
+      resources {
+        network {
+          port "grafana_web" {
+            static = "3000"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Software roles (Alertmanager)
+### Alertmanager handlers
+
+In de handler van alertmanager geven we mee dat we deze als een nomad job gaan runnen. We roepen de alertmanager.nomad file op die aangemaakt wordt in het task gedeelte van alertmanager binnen Ansible. Deze handler wordt later gebruikt in tasks na het maken van de nomad job.
+
+```
+---
+- name: start alertmanager job
+  shell: nomad job run -address=http://192.168.1.2:4646/ /opt/nomad/alertmanager.nomad || exit 0
+```
+
+### Alertmanager tasks
+
+In de tasks van alertmanager gaan we simpelweg een nomad job maken en deze stoppen in de /opt/nomad map. We halen de code van de job op in de template file die we hebben aangemaakt voor Alertmanager. Op het einde geven we nog mee met behulp van notify dat we de handler moeten uitvoeren om de job te starten.
+
+```
+---
+- name: nomad job alertmanager 
+  template: 
+    src: alertmanager.nomad.sh.j2
+    dest: /opt/nomad/alertmanager.nomad
+  notify: start alertmanager job
+```
+
+### Alertmanager templates
+
+In de template van Alertmanager geven we de configuratie mee die we in de nomad job stoppen bij de tasks van Alertmanager. We maken hier een alertmanager job met behulp van docker die de prom/alertmanager image pulled. Deze wordt geopend op de 9093 poort.
+
+```
+job "alertmanager" {
+  datacenters = ["dc1"]
+  type = "service"
+  
+  group "alertmanager" {
+  
+    task "alertmanager" {
+      driver = "docker"
+
+      config {
+        image = "prom/alertmanager"
+		force_pull = true
+		port_map = {
+		  alertmanager_web = 9093
+		} 
+		logging {
+		  type = "journald"
+		  config {
+		    tag = "ALERTMANAGER"
+		 }
+		}	
+      }
+	  
+	  service {
+	    name = "alertmanager"
+	    port = "alertmanager_web"
+	  } 
+
+      resources {
+        network {
+          port "alertmanager_web" {
+            static = "9093"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Software roles (Node-exporter)
+### Node-exporter handlers
+
+In de handler van node-exporter geven we mee dat we deze als een nomad job gaan runnen. We roepen de node-exporter.nomad file op die aangemaakt wordt in het task gedeelte van node-exporter binnen Ansible. Deze handler wordt later gebruikt in tasks na het maken van de nomad job.
+
+```
+---
+- name: start node-exporter job
+  shell: nomad job run -address=http://192.168.1.2:4646/ /opt/nomad/node-exporter.nomad || exit 0
+```
+
+### Node-exporter tasks
+
+In de tasks van node-exporter gaan we simpelweg een nomad job maken en deze stoppen in de /opt/nomad map. We halen de code van de job op in de template file die we hebben aangemaakt voor node-exporter. Op het einde geven we nog mee met behulp van notify dat we de handler moeten uitvoeren om de job te starten.
+
+```
+---
+- name: nomad job node-exporter 
+  template: 
+    src: node-exporter.sh.j2
+    dest: /opt/nomad/node-exporter.nomad
+  notify: start node-exporter job
+```
+
+### Node-exporter templates
+
+In de template van node-exporter geven we de configuratie mee die we in de nomad job stoppen bij de tasks van node-exporter. We maken hier een node-exporter job met behulp van docker die de prom/node-exporter image pulled. Deze wordt geopend op de 9100 poort.
+
+```
+job "node-exporter" {
+  datacenters = ["dc1"]
+  type = "service"
+  
+  group "node-exporter" {
+  
+    task "node-exporter" {
+      driver = "docker"
+
+      config {
+        image = "prom/node-exporter"
+		force_pull = true
+		port_map = {
+		  node-exporter_web = 9100
+		} 
+		logging {
+		  type = "journald"
+		  config {
+		    tag = "NODE-EXPORTER"
+		 }
+		}	
+      }
+	  
+	  service {
+	    name = "node-exporter"
+	    port = "node-exporter_web"
+	  } 
+
+      resources {
+        network {
+          port "node-exporter_web" {
+            static = "9100"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Software roles (Cadvisor)
+### Cadvisor handlers
+
+In de handler van Cadvisor geven we mee dat we deze als een nomad job gaan runnen. We roepen de Cadvisor.nomad file op die aangemaakt wordt in het task gedeelte van Cadvisor binnen Ansible. Deze handler wordt later gebruikt in tasks na het maken van de nomad job.
+
+```
+---
+- name: start cadvisor job
+  shell: nomad job run -address=http://192.168.1.2:4646/ /opt/nomad/cadvisor.nomad || exit 0
+
+```
+
+### Cadvisor tasks
+
+In de tasks van cadvisor gaan we simpelweg een nomad job maken en deze stoppen in de /opt/nomad map. We halen de code van de job op in de template file die we hebben aangemaakt voor cadvisor. Op het einde geven we nog mee met behulp van notify dat we de handler moeten uitvoeren om de job te starten.
+
+```
+---
+- name: nomad job cadvisor 
+  template: 
+    src: cadvisor.nomad.sh.j2
+    dest: /opt/nomad/cadvisor.nomad
+  notify: start cadvisor job
+```
+
+### Cadvisor templates
+
+In de template van cadvisor geven we de configuratie mee die we in de nomad job stoppen bij de tasks van cadvisor. We maken hier een cadvisor job met behulp van docker die de google/cadvisor image pulled. Deze wordt geopend op de 8080 poort.
+
+```
+job "cadvisor" {
+  datacenters = ["dc1"]
+  type = "service"
+
+  group "cadvisor" {
+
+    task "cadvisor" {
+      driver = "docker"
+
+      config {
+        image = "google/cadvisor"
+                force_pull = true
+                port_map = {
+                  cadvisor_web = 8080
+                }
+                logging {
+                  type = "journald"
+                  config {
+                    tag = "CADVISOR"
+                 }
+                }
+      }
+
+          service {
+            name = "cadvisor"
+            port = "cadvisor_web"
+          }
+
+      resources {
+        network {
+          port "cadvisor_web" {
+            static = "8080"
+          }
+        }
+      }
+    }
+  }
+}
+
+```
+
+## Grafana dashboards
+
+In de grafana_dashboards folder op de github repository hebben we 2 dashboards gekozen die een goed overzicht geeft van de metrics van de nomad jobs alsook onze node_exporter metrics. Aan deze dashboards kunnen verschillende aanpassingen gedaan worden om ze nog meer aan te passen naar de wil van de gebruiker.
+
+![node exporter grafana](https://user-images.githubusercontent.com/43812348/104042716-1e1f7d80-51db-11eb-9db2-f992d44b1251.png)
+
+![nomad jobs grafana](https://user-images.githubusercontent.com/43812348/104042720-1eb81400-51db-11eb-8510-1c42c5fce811.png)
+
+## Prometheus targets
+
+Als we gaan kijken naar de Prometheus targets moeten we normaal alle services zien waar we de metrics van gaan ophalen.
+
+![prometheus targets](https://user-images.githubusercontent.com/43812348/104042721-1f50aa80-51db-11eb-91bd-137fc109ac69.png)
 
 ## Taakverdeling
 
@@ -332,8 +441,10 @@ Tijdens het maken van de opdracht hebben wij voor het grootste gedeelte samengew
 
 Slides Lessen
 
-https://docs.ansible.com/ansible/latest/collections/ansible/builtin/service_module.html
+https://learn.hashicorp.com/tutorials/nomad/prometheus-metrics
 
-https://docs.ansible.com/ansible/latest/scenario_guides/guide_vagrant.html
+https://prometheus.io/docs/instrumenting/exporters/#exporters-and-integrations
 
-https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html
+https://prometheus.io/docs/guides/node-exporter/
+
+https://docs.docker.com/config/daemon/prometheus/
