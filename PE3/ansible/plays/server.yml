@@ -10,3 +10,4 @@
     - role: software/grafana
     - role: software/alertmanager
     - role: software/node_exporter
+    - role: software/cadvisor

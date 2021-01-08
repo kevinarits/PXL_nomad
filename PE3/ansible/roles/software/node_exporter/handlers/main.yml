@@ -1,5 +1,3 @@
 ---
-- name: restart node_exporter
-  service:
-    name: node_exporter
-    state: restarted
+- name: start node-exporter job
+  shell: nomad job run -address=http://192.168.1.2:4646/ /opt/nomad/node-exporter.nomad || exit 0

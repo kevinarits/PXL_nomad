@@ -1,0 +1,3 @@
+---
+- name: start cadvisor job
+  shell: nomad job run -address=http://192.168.1.2:4646/ /opt/nomad/cadvisor.nomad || exit 0
