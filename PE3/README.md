@@ -4,7 +4,7 @@ In deze documentatie gaan wij onze configuratie laten zien van verschillende met
 
 ## Prometheus
 
-Om prometheus op te zetten in onze cluster hebben we ervoor gekozen om 1 file te maken waarin we alle configuratie meegeven. In principe is deze file onze nomad job alleen maar binnen deze file worden er ook 2 andere files aangemaakt en weggeschreven naar .yml bestanden. Eerst over de job, onze job 'prometheus' zal gewoon via docker een image pullen (prom/prometheus:latest) en deze openen op de 9090 poort. Natuurlijk zonder een prometheus.yml file kunnen we niet de scrape targets meegeven aan de prometheus. Dit doen we door een stukje code weg te schrijven naar local/prometheus.yml file met behulp van EOH. We geven hier mee dat de prometheus verschillende targets moet scrapen van de consul pagina of gewoon een IP. Alertmanager, nomad, nomad-client en cadvisor worden ingesteld zodanig dat er wordt gezocht op de consul naar de specifieke service. Deze service bezit alle metrics die nodig zijn voor onze prometheus. Ook node-exporter staat hierbij, alleen worden de metrics met behulp van een static target opgehaald. Buiten de prometheus.yml hebben we ook de cadvisor_alert.yml, deze hebben we ingesteld zodat wanneer onze cadvisor webpagina down gaat er een melding wordt verstuurd op alertmanager.
+Om prometheus op te zetten in onze cluster hebben we ervoor gekozen om 1 file te maken waarin we alle configuratie meegeven. In principe is deze file alleen onze nomad job, maar binnen deze file worden er ook 2 andere files aangemaakt en weggeschreven naar .yml bestanden. Eerst over de job, onze job 'prometheus' zal gewoon via docker een image pullen (prom/prometheus:latest) en deze openen op de 9090 poort. Natuurlijk zonder een prometheus.yml file kunnen we niet de scrape targets meegeven aan de prometheus. Dit doen we door een stukje code weg te schrijven naar local/prometheus.yml file met behulp van EOH. We geven hier mee dat de prometheus verschillende targets moet scrapen van de consul pagina of gewoon een IP. Alertmanager, nomad, nomad-client en cadvisor worden ingesteld zodanig dat er wordt gezocht op de consul naar de specifieke service. Deze service bezit alle metrics die nodig zijn voor onze prometheus. Ook node-exporter staat hierbij, alleen worden de metrics met behulp van een static target opgehaald. Buiten de prometheus.yml hebben we ook de cadvisor_alert.yml, deze hebben we ingesteld zodat wanneer onze cadvisor webpagina down gaat er een melding wordt verstuurd op alertmanager.
 
 ```
 job "prometheus" {
@@ -421,7 +421,7 @@ job "cadvisor" {
 
 ## Grafana dashboards
 
-In de grafana_dashboards folder op de github repository hebben we 2 dashboards gekozen die een goed overzicht geeft van de metrics van de nomad jobs alsook onze node_exporter metrics. Aan deze dashboards kunnen verschillende aanpassingen gedaan worden om ze nog meer aan te passen naar de wil van de gebruiker.
+In de grafana_dashboards folder op de github repository hebben we 2 dashboards gekozen die allebei een goed overzicht geven van de metrics van de nomad jobs alsook onze node_exporter metrics. Aan deze dashboards kunnen verschillende aanpassingen gedaan worden om ze nog meer aan te passen naar de wil van de gebruiker.
 
 ![node exporter grafana](https://user-images.githubusercontent.com/43812348/104042716-1e1f7d80-51db-11eb-9db2-f992d44b1251.png)
 
