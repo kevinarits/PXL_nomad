@@ -19,19 +19,19 @@ job "prometheus" {
     task "prometheus" {
       template {
         change_mode = "noop"
-        destination = "local/webserver_alert.yml"
+        destination = "local/cadvisor_alert.yml"
         data = <<EOH
 ---
 groups:
 - name: prometheus_alerts
   rules:
-  - alert: Webserver down
-    expr: absent(up{job="webserver"})
+  - alert: cadvisor down
+    expr: absent(up{job="cadvisor"})
     for: 10s
     labels:
       severity: critical
     annotations:
-      description: "Our webserver is down."
+      description: "Our cadvisor is down."
 EOH
       }
 
@@ -52,7 +52,7 @@ alerting:
       services: ['alertmanager']
 
 rule_files:
-  - "webserver_alert.yml"
+  - "cadvisor_alert.yml"
 
 scrape_configs:
 
@@ -79,20 +79,15 @@ scrape_configs:
       format: ['prometheus']
 
   - job_name: 'node_exporter'
+    static_configs:
+    - targets: ['192.168.1.3:9100']
+  
+  - job_name: 'cadvisor'
+
     consul_sd_configs:
-      - server: '192.168.1.2:8500'
-        services: ['nomad-client']
-    relabel_configs:
-      - source_labels: [__meta_consul_tags]
-        regex: '(.*)http(.*)'
-        action: keep
-      - source_labels: [__meta_consul_service]
-        target_label: job
-      - source_labels: [__address__]
-        action: replace
-        regex: ([^:]+):.*
-        replacement: $1:9100
-        target_label: __address__
+    - server: '{{ env "NOMAD_IP_prometheus_ui" }}:8500'
+      services: ['cadvisor']
+
 EOH
       }
 
@@ -115,9 +110,10 @@ EOH
              port "prometheus_ui" {
              to = 9090
              static = 9090
-         }
-      }
+             }
 
+        }
+      }
       service {
         name = "prometheus"
         tags = ["urlprefix-/"]
